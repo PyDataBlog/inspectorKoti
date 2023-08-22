@@ -27,5 +27,5 @@ jobs:
         goarch: ${{ matrix.goarch }}
         goversion: "https://go.dev/dl/go1.21.0.linux-amd64.tar.gz"
         project_path: "./"
-        binary_name: "bin/inspectorkoti"
+        binary_name: "inspectorkoti"
        

@@ -1,0 +1,4 @@
+FROM python:3.11-slim
+
+COPY stale.py /stale.py
+CMD ["python", "/stale.py"]

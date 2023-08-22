@@ -1,0 +1,34 @@
+name: Build and Test Stale Pod Detector
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21.0
+
+    - name: Build the Go application
+      run: go build -o stale-pod-detector
+
+    - name: Setup k3d
+      run: |
+        curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+        k3d cluster create mycluster
+
+    - name: Run integration tests
+      run: |
+        bash ./release.sh

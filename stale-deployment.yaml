@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stale-deployment-external
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: stale
+  template:
+    metadata:
+      labels:
+        app: stale
+    spec:
+      containers:
+      - name: stale-container
+        image: stale-image:latest
+        imagePullPolicy: Never
+        resources:
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+          requests:
+            cpu: "500m"
+            memory: "256Mi"

@@ -1,0 +1,32 @@
+package monitoring
+
+import (
+	"sync"
+
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/metrics/pkg/client/clientset/versioned"
+)
+
+type AppConfig struct {
+	MetricsClientSet *versioned.Clientset
+	MetricsMutex     *sync.Mutex
+	Namespace        string
+	CheckRAM         bool
+	Threshold        int
+	Period           int
+	Clientset        *kubernetes.Clientset
+	PreviousMetrics  map[string]int64
+}
+
+func NewAppConfig(mmutex *sync.Mutex, ns string, checkedRam bool, t, p int, prevMetrics map[string]int64) *AppConfig {
+	return &AppConfig{
+
+		MetricsMutex:    mmutex,
+		Namespace:       ns,
+		CheckRAM:        checkedRam,
+		Threshold:       t,
+		Period:          p,
+		PreviousMetrics: prevMetrics,
+	}
+
+}

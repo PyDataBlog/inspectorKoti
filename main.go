@@ -24,6 +24,7 @@ func init() {
 	flag.IntVar(&period, "period", 60, "Time period in seconds to check for stale pods")
 	flag.IntVar(&threshold, "threshold", 100, "Threshold for considering a pod stale")
 	flag.BoolVar(&checkRAM, "check-ram", false, "Check RAM instead of CPU")
+	previousMetrics = make(map[string]int64)
 	flag.Parse()
 }
 

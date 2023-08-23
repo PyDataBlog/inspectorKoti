@@ -1,8 +1,6 @@
 on:
   release:
     types: [created]
-    paths:
-    - '*/**'
 
 jobs:
   releases-matrix:
@@ -28,4 +26,3 @@ jobs:
         goversion: "https://go.dev/dl/go1.21.0.linux-amd64.tar.gz"
         project_path: "./"
         binary_name: "inspectorkoti"
-       

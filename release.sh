@@ -17,7 +17,7 @@ kubectl apply -f stale-deployment.yaml
 
 # Use application to detect stale pods
 go build -o InspectorKoti
-./InspectorKoti --kubeconfig ~/.kube/config --dry-run true
+./InspectorKoti --kubeconfig ~/.kube/config --namespace default --deployment stale-deployment --dry-run --period 90 --threshold 100 --timeout 240 --debug
 
 # Clean up
 k3d cluster delete mycluster

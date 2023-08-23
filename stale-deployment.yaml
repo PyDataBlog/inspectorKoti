@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: stale-deployment-external
+  name: stale-deployment
 spec:
   replicas: 5
   selector:

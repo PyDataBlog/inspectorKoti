@@ -1,7 +1,7 @@
 name: Build and Test Stale Pod Detector
 
 on: 
-  workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   build-and-test:

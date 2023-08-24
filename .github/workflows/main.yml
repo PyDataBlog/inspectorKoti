@@ -1,6 +1,12 @@
 name: Build and Test Stale Pod Detector
 
 on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:

@@ -18,6 +18,7 @@ var (
 	metricsMutex                                sync.Mutex
 )
 
+
 func init() {
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "/path/to/.kube/config", "Path to kubeconfig file")
 	flag.StringVar(&namespace, "namespace", "default", "Namespace to watch")
@@ -30,6 +31,9 @@ func init() {
 	previousMetrics = make(map[string]int64)
 	flag.Parse()
 }
+
+
+
 
 func main() {
 
@@ -59,3 +63,4 @@ func main() {
 	err.DebugPrint("Program terminated.")
 
 }
+

@@ -1,11 +1,14 @@
 package monitoring
 
 import (
+	"InspectorKoti/pkg/err"
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/metrics/pkg/client/clientset/versioned"
@@ -40,30 +43,53 @@ func (app *AppConfig) IsStaledPod(podName string) bool {
 		}
 		time.Sleep(2 * time.Second)
 	}
-	fmt.Printf("Failed to get metrics for pod %s after retries\n", podName)
+
+	log.Printf("Failed to get metrics for pod %s after retries\n", podName)
 	return false
 }
 
 func (app *AppConfig) MonitorStalePods(dryRun bool) {
 	ticker := time.NewTicker(time.Duration(app.Period) * time.Second)
-	for range ticker.C {
-		pods, err := app.Clientset.CoreV1().Pods(app.Namespace).List(context.TODO(), metav1.ListOptions{})
-		if err != nil {
-			fmt.Println("Failed to get pods:", err)
-			continue
-		}
-		for _, pod := range pods.Items {
-			if app.IsStaledPod(pod.Name) {
-				fmt.Println("Stale pod detected:", pod.Name)
-				if !dryRun {
-					err := app.Clientset.CoreV1().Pods(app.Namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
-					if err != nil {
-						fmt.Println("Failed to delete pod:", err)
-					} else {
-						fmt.Println("Deleted stale pod:", pod.Name)
+	defer ticker.Stop()
+
+	for {
+
+		select {
+		case <-app.Ctx.Done():
+			err.DebugPrint("Context done received in monitorStalePods.")
+			return
+		case <-ticker.C:
+			err.DebugPrint("Monitoring stale pods...") // Debugging information:
+			var options metav1.ListOptions
+			if app.Deployment != "" {
+				deployment, err := app.Clientset.AppsV1().Deployments(app.Namespace).Get(context.TODO(), app.Deployment, metav1.GetOptions{})
+				if err != nil {
+					fmt.Println("Failed to get deployment:", err)
+					continue
+				}
+				labelSelector := labels.Set(deployment.Spec.Selector.MatchLabels).String()
+				options = metav1.ListOptions{LabelSelector: labelSelector}
+			}
+			pods, err := app.Clientset.CoreV1().Pods(app.Namespace).List(context.TODO(), options)
+			if err != nil {
+				fmt.Println("Failed to get pods:", err)
+				continue
+			}
+
+			for _, pod := range pods.Items {
+				if app.IsStaledPod(pod.Name) {
+					fmt.Println("Stale pod detected:", pod.Name)
+					if !dryRun {
+						err := app.Clientset.CoreV1().Pods(app.Namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+						if err != nil {
+							fmt.Println("Failed to delete pod:", err)
+						} else {
+							fmt.Println("Deleted stale pod:", pod.Name)
+						}
 					}
 				}
 			}
+
 		}
 	}
 }

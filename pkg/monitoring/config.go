@@ -1,6 +1,7 @@
 package monitoring
 
 import (
+	"context"
 	"sync"
 
 	"k8s.io/client-go/kubernetes"
@@ -16,9 +17,11 @@ type AppConfig struct {
 	Period           int
 	Clientset        *kubernetes.Clientset
 	PreviousMetrics  map[string]int64
+	Ctx              context.Context
+	Deployment       string
 }
 
-func NewAppConfig(mmutex *sync.Mutex, ns string, checkedRam bool, t, p int, prevMetrics map[string]int64) *AppConfig {
+func NewAppConfig(mmutex *sync.Mutex, ns string, checkedRam bool, t, p int, prevMetrics map[string]int64, depl string) *AppConfig {
 	return &AppConfig{
 
 		MetricsMutex:    mmutex,
@@ -27,6 +30,7 @@ func NewAppConfig(mmutex *sync.Mutex, ns string, checkedRam bool, t, p int, prev
 		Threshold:       t,
 		Period:          p,
 		PreviousMetrics: prevMetrics,
+		Deployment:      depl,
 	}
 
 }

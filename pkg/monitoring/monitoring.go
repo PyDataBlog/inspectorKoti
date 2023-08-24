@@ -5,10 +5,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/metrics/pkg/client/clientset/versioned"
@@ -62,36 +63,64 @@ func (app *AppConfig) MonitorStalePods(dryRun bool, ctx context.Context) {
 			err.DebugPrint("Monitoring stale pods...") // Debugging information:
 			var options metav1.ListOptions
 			if app.Deployment != "" {
-				deployment, err := app.Clientset.AppsV1().Deployments(app.Namespace).Get(context.TODO(), app.Deployment, metav1.GetOptions{})
+				pp := app.Clientset.CoreV1().Pods(app.Namespace)
+				pp_list, err := pp.List(context.Background(), metav1.ListOptions{})
 				if err != nil {
-					fmt.Println("Failed to get deployment:", err)
+					log.Fatal("error geting pods", err)
+				}
+				app.stalepodsDelete(pp_list, dryRun, true)
+
+			} else {
+				pods, err := app.Clientset.CoreV1().Pods(app.Namespace).List(context.TODO(), options)
+				if err != nil {
+					fmt.Println("Failed to get pods:", err)
 					continue
 				}
-				labelSelector := labels.Set(deployment.Spec.Selector.MatchLabels).String()
-				options = metav1.ListOptions{LabelSelector: labelSelector}
-			}
-			pods, err := app.Clientset.CoreV1().Pods(app.Namespace).List(context.TODO(), options)
-			if err != nil {
-				fmt.Println("Failed to get pods:", err)
-				continue
+				app.stalepodsDelete(pods, dryRun, false)
+
 			}
 
-			for _, pod := range pods.Items {
-				if app.IsStaledPod(pod.Name) {
-					fmt.Println("Stale pod detected:", pod.Name)
+		}
+	}
+}
+
+func (app *AppConfig) stalepodsDelete(pods *v1.PodList, dryRun bool, deployment_check bool) {
+	if deployment_check {
+		for _, pod := range pods.Items {
+
+			if strings.Contains(pod.Name, app.Deployment) {
+				pod_name := pod.Name
+				if app.IsStaledPod(pod_name) {
+					fmt.Println("Stale pod detected:", pod_name)
 					if !dryRun {
-						err := app.Clientset.CoreV1().Pods(app.Namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+						err := app.Clientset.CoreV1().Pods(app.Namespace).Delete(context.TODO(), pod_name, metav1.DeleteOptions{})
 						if err != nil {
 							fmt.Println("Failed to delete pod:", err)
 						} else {
-							fmt.Println("Deleted stale pod:", pod.Name)
+							fmt.Println("Deleted stale pod:", pod_name)
 						}
+					}
+				}
+			}
+		}
+	} else {
+		for _, pod := range pods.Items {
+			if app.IsStaledPod(pod.Name) {
+				fmt.Println("Stale pod detected:", pod.Name)
+				if !dryRun {
+					err := app.Clientset.CoreV1().Pods(app.Namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
+					if err != nil {
+						fmt.Println("Failed to delete pod:", err)
+					} else {
+						fmt.Println("Deleted stale pod:", pod.Name)
 					}
 				}
 			}
 
 		}
+
 	}
+
 }
 
 func (app *AppConfig) GetK8sClient(kubeconfig string) error {

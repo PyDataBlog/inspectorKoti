@@ -1,6 +1,6 @@
 name: Build and Test Stale Pod Detector
 
-on:
+on: 
   push:
     branches:
       - main

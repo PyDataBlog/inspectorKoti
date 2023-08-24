@@ -1,0 +1,7 @@
+# overlays/release/patch.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stale-deployment # Ensure this name matches the one in your base YAML
+spec:
+  replicas: 3 # or whatever changes you want to make

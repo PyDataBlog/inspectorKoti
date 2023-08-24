@@ -1,9 +1,8 @@
 package monitoring
 
 import (
-	"InspectorKoti/pkg/err"
+	debug "InspectorKoti/pkg/err"
 	"context"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -39,7 +38,7 @@ func (app *AppConfig) IsStaledPod(podName string) bool {
 
 			delta := currentUsage - previousUsage
 			app.PreviousMetrics[podName] = currentUsage
-
+			debug.DebugPrint("Current usage: ", currentUsage, " Previous usage: ", previousUsage, " Delta: ", delta) // Debugging information
 			return delta < int64(app.Threshold)
 		}
 		time.Sleep(2 * time.Second)
@@ -57,10 +56,10 @@ func (app *AppConfig) MonitorStalePods(dryRun bool, ctx context.Context) {
 
 		select {
 		case <-ctx.Done():
-			err.DebugPrint("Context done received in monitorStalePods.")
+			debug.DebugPrint("Context done received in monitorStalePods.")
 			return
 		case <-ticker.C:
-			err.DebugPrint("Monitoring stale pods...") // Debugging information:
+			debug.DebugPrint("Monitoring stale pods...") // Debugging information:
 			var options metav1.ListOptions
 			if app.Deployment != "" {
 				pp := app.Clientset.CoreV1().Pods(app.Namespace)
@@ -73,7 +72,7 @@ func (app *AppConfig) MonitorStalePods(dryRun bool, ctx context.Context) {
 			} else {
 				pods, err := app.Clientset.CoreV1().Pods(app.Namespace).List(context.TODO(), options)
 				if err != nil {
-					fmt.Println("Failed to get pods:", err)
+					log.Println("Failed to get pods:", err)
 					continue
 				}
 				app.stalepodsDelete(pods, dryRun, false)
@@ -91,13 +90,13 @@ func (app *AppConfig) stalepodsDelete(pods *v1.PodList, dryRun bool, deployment_
 			if strings.Contains(pod.Name, app.Deployment) {
 				pod_name := pod.Name
 				if app.IsStaledPod(pod_name) {
-					fmt.Println("Stale pod detected:", pod_name)
+					log.Println("Stale pod detected:", pod_name)
 					if !dryRun {
 						err := app.Clientset.CoreV1().Pods(app.Namespace).Delete(context.TODO(), pod_name, metav1.DeleteOptions{})
 						if err != nil {
-							fmt.Println("Failed to delete pod:", err)
+							log.Println("Failed to delete pod:", err)
 						} else {
-							fmt.Println("Deleted stale pod:", pod_name)
+							log.Println("Deleted stale pod:", pod_name)
 						}
 					}
 				}
@@ -106,13 +105,13 @@ func (app *AppConfig) stalepodsDelete(pods *v1.PodList, dryRun bool, deployment_
 	} else {
 		for _, pod := range pods.Items {
 			if app.IsStaledPod(pod.Name) {
-				fmt.Println("Stale pod detected:", pod.Name)
+				log.Println("Stale pod detected:", pod.Name)
 				if !dryRun {
 					err := app.Clientset.CoreV1().Pods(app.Namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{})
 					if err != nil {
-						fmt.Println("Failed to delete pod:", err)
+						log.Println("Failed to delete pod:", err)
 					} else {
-						fmt.Println("Deleted stale pod:", pod.Name)
+						log.Println("Deleted stale pod:", pod.Name)
 					}
 				}
 			}

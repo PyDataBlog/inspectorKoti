@@ -13,11 +13,11 @@ docker build -t $STALE_IMAGE -f StaleDockerfile .
 k3d image import $STALE_IMAGE -c mycluster
 
 # Deploy a sample test stale pod
-kubectl apply -f stale-deployment.yaml
+kubectl apply -k overlays/release 
 
 # Use application to detect stale pods
 go build -o InspectorKoti
-./InspectorKoti --kubeconfig ~/.kube/config --namespace default --deployment stale-deployment --dry-run --period 90 --threshold 100 --timeout 240 --debug
+./InspectorKoti --kubeconfig ~/.kube/config --namespace default --deployment stale-deployment --dry-run --period 60 --threshold 100 --timeout 240 --debug
 
 # Clean up
 k3d cluster delete mycluster

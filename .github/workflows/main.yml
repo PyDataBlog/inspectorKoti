@@ -28,7 +28,6 @@ jobs:
     - name: Setup k3d
       run: |
         curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
-        k3d cluster create mycluster
 
     - name: Run integration tests
       run: |

@@ -4,8 +4,16 @@ import (
 	"log"
 )
 
-func DebugPrint(v ...interface{}) {
+var debugMode bool
 
-	log.Println(v...)
+
+func SetDebugMode(d bool) {
+	debugMode = d
+}
+
+func DebugPrint(v ...interface{}) {
+	if debugMode {
+		log.Println(v...)
+	}
 
 }

@@ -48,14 +48,14 @@ func (app *AppConfig) IsStaledPod(podName string) bool {
 	return false
 }
 
-func (app *AppConfig) MonitorStalePods(dryRun bool) {
+func (app *AppConfig) MonitorStalePods(dryRun bool, ctx context.Context) {
 	ticker := time.NewTicker(time.Duration(app.Period) * time.Second)
 	defer ticker.Stop()
 
 	for {
 
 		select {
-		case <-app.Ctx.Done():
+		case <-ctx.Done():
 			err.DebugPrint("Context done received in monitorStalePods.")
 			return
 		case <-ticker.C:

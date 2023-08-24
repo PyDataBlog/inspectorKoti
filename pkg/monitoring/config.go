@@ -1,7 +1,6 @@
 package monitoring
 
 import (
-	"context"
 	"sync"
 
 	"k8s.io/client-go/kubernetes"
@@ -17,7 +16,6 @@ type AppConfig struct {
 	Period           int
 	Clientset        *kubernetes.Clientset
 	PreviousMetrics  map[string]int64
-	Ctx              context.Context
 	Deployment       string
 }
 

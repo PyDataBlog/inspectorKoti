@@ -1,13 +1,13 @@
 package main
 
 import (
+	"InspectorKoti/pkg/err"
 	"InspectorKoti/pkg/monitoring"
 	"context"
 	"flag"
+	"os"
 	"sync"
 	"time"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
@@ -33,23 +33,29 @@ func init() {
 
 func main() {
 
+	err.DebugPrint("Raw args:", os.Args) // Debugging information
+	flag.VisitAll(func(f *flag.Flag) {
+		err.DebugPrint(f.Name, ": ", f.Value)
+	}) // Debugging information
+	err.DebugPrint("Parsed timeout value:", timeout) // Debugging information
+
 	app := monitoring.NewAppConfig(&metricsMutex, namespace, checkRAM, threshold, period, previousMetrics, targetDeployment)
 	app.GetK8sClient(kubeconfigPath)
+	err.DebugPrint("Timeout value:", timeout) // Debugging information to print the timeout value
 
-	// Regularly clean up previousMetrics for deleted pods
-	go func() {
-		ticker := time.NewTicker(5 * time.Minute)
-		for range ticker.C {
-			app.MetricsMutex.Lock()
-			for podName := range app.PreviousMetrics {
-				_, err := app.Clientset.CoreV1().Pods(app.Namespace).Get(context.TODO(), podName, metav1.GetOptions{})
-				if err != nil {
-					delete(app.PreviousMetrics, podName)
-				}
-			}
-			app.MetricsMutex.Unlock()
-		}
-	}()
+	ctx, cancel := context.WithCancel(context.Background())
+	go app.MonitorStalePods(dryRun, ctx)
 
-	app.MonitorStalePods(dryRun)
+	if timeout > 0 {
+		go func() {
+			err.DebugPrint("Starting timeout countdown...") // Debugging information
+			time.Sleep(time.Duration(timeout) * time.Second)
+			err.DebugPrint("Timeout reached. Attempting to terminate program.") // Debugging information
+			cancel()
+		}()
+	}
+
+	<-ctx.Done()
+	err.DebugPrint("Program terminated.")
+
 }

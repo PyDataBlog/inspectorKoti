@@ -15,6 +15,9 @@ k3d image import $STALE_IMAGE -c mycluster
 # Deploy a sample test stale pod
 kubectl apply -k overlays/release 
 
+# Wait for the pod to be ready
+kubectl wait --for=condition=ready deployment/stale-deployment --timeout=60s
+
 # Use application to detect stale pods
 go build -o InspectorKoti
 ./InspectorKoti --kubeconfig ~/.kube/config --namespace default --deployment stale-deployment --dry-run --period 60 --threshold 100 --timeout 240 --debug

@@ -4,6 +4,7 @@ import (
 	"InspectorKoti/pkg/debug"
 	"context"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -37,9 +38,10 @@ func (app *AppConfig) IsStaledPod(podName string) bool {
 			}
 
 			delta := currentUsage - previousUsage
+			absDelta := int64(math.Abs(float64(delta)))
 			app.PreviousMetrics[podName] = currentUsage
-			debug.DebugPrint("Current usage: ", currentUsage, " Previous usage: ", previousUsage, " Delta: ", delta) // Debugging information
-			return delta < int64(app.Threshold)
+			debug.DebugPrint("Current usage: ", currentUsage, " Previous usage: ", previousUsage, " Delta: ", delta, " Absolute Delta: ", absDelta) // Debugging information
+			return absDelta < int64(app.Threshold)
 		}
 		time.Sleep(2 * time.Second)
 	}

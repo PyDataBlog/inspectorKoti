@@ -1,11 +1,10 @@
-package err
+package debug
 
 import (
 	"log"
 )
 
 var debugMode bool
-
 
 func SetDebugMode(d bool) {
 	debugMode = d

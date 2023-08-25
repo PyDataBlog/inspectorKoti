@@ -1,7 +1,7 @@
 package monitoring
 
 import (
-	debug "InspectorKoti/pkg/err"
+	"InspectorKoti/pkg/debug"
 	"context"
 	"log"
 	"strings"

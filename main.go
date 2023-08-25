@@ -1,7 +1,7 @@
 package main
 
 import (
-	debug "InspectorKoti/pkg/err"
+	"InspectorKoti/pkg/debug"
 	"InspectorKoti/pkg/monitoring"
 	"context"
 	"flag"
@@ -19,7 +19,6 @@ var (
 	metricsMutex                                sync.Mutex
 )
 
-
 func init() {
 	flag.StringVar(&kubeconfigPath, "kubeconfig", "/path/to/.kube/config", "Path to kubeconfig file")
 	flag.StringVar(&namespace, "namespace", "default", "Namespace to watch")
@@ -34,9 +33,6 @@ func init() {
 	flag.Parse()
 	debug.SetDebugMode(debugMode)
 }
-
-
-
 
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime)
@@ -66,4 +62,3 @@ func main() {
 	debug.DebugPrint("Program terminated.")
 
 }
-

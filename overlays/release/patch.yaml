@@ -1,0 +1,7 @@
+# overlays/release/patch.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stale-deployment
+spec:
+  replicas: 3
